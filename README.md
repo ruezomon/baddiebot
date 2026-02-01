@@ -8,7 +8,7 @@ This is why my code is open source, but you still cant use it yourself.
 
 IF you want to use this Code for your own bot the config.json should look like this...
 
-```config.json
+```json JSON Example
 {
     "token": "YOUR_BOT_TOKEN"
 }
