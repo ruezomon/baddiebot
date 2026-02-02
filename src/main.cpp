@@ -1,5 +1,6 @@
 #include <dpp/dpp.h>
 #include <thread>
+#include <fstream>
 #include "../include/json.hpp"
 
 using namespace std;
@@ -14,7 +15,11 @@ char diceRoll(int low, int up);
 
 // main
 int main(int argc, char** argv) {
-    /*
+
+    // initialization
+    ifstream file("../config.json");
+    nlohmann::json data = nlohmann::json::parse(file);
+    const string BOT_TOKEN = data["token"];
     dpp::cluster bot(BOT_TOKEN);
 
     bot.on_log(dpp::utility::cout_logger());
@@ -38,11 +43,8 @@ int main(int argc, char** argv) {
     });
 
     bot.start(dpp::st_wait);
-    */
-   cout << "hello world" << endl;
-   return 0;
+    return 0;
 }
-/*
 // functions
 string executeSlashCommand(string userInput) {
     string result;
@@ -61,4 +63,4 @@ string executeSlashCommand(string userInput) {
 char diceRoll(int low, int up) {
     srand(time(NULL));
     return (rand() % up + low) + '0';
-*/
+}
