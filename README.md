@@ -25,4 +25,11 @@ including D++ (C++ Discord API).
 How to download D++ (official website):
 https://dpp.dev/installing.html
 
-Have fun! :D
+
+## Commands
+Soon, very soon, there will be a documentation for every executable command. <br>
+Riiiiiiiiiiight here. Until then... Maybe you want me to make you an app as well!
+
+Contact me via ruezgar.guenduez@gmail.com, if you are interested in an app for yourself.
+
+Until then, cheers
