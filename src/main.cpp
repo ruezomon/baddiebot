@@ -18,10 +18,14 @@ struct embedField {
 };
 
 // prototypes
-void executeSlashCommand(string userInput, const dpp::slashcommand_t& event);
+void executeSlashCommand(string userInput, const dpp::slashcommand_t& event, dpp::command_interaction cmd_data);
+bool isNumber(string strNumber);
+
 string diceRoll(int low, int up);
-void embed(const dpp::slashcommand_t& event, string title, string desc, string imgURL, embedField* fields, unsigned char fieldAmount);
-dpp::embed getEmbed(string title, string desc, string imgURL, embedField* fields, unsigned char fieldAmount);
+int* getHighLow(vector<dpp::command_data_option> options);
+
+void embed(const dpp::slashcommand_t& event, string title, string desc, string footer, embedField* fields, unsigned char fieldAmount, string thumbnailURL="none", string imgURL="none");
+dpp::embed getEmbed(string title, string desc, string footer, embedField* fields, unsigned char fieldAmount, string thumbnailURL, string imgURL);
 
 // main
 int main(int argc, char** argv) {
@@ -35,8 +39,9 @@ int main(int argc, char** argv) {
     bot.on_log(dpp::utility::cout_logger());
 
     bot.on_slashcommand([](const dpp::slashcommand_t& event) {
+        dpp::command_interaction cmd_data = event.command.get_command_interaction();
         string input = event.command.get_command_name();
-        executeSlashCommand(input, event);
+        executeSlashCommand(input, event, cmd_data);
     });
 
     bot.on_ready([&bot](const dpp::ready_t& event) {
@@ -44,8 +49,8 @@ int main(int argc, char** argv) {
 
             vector<dpp::slashcommand> commands;
             commands.push_back(dpp::slashcommand(PING, PING_DESCRIPTION, bot.me.id));
-            commands.push_back(dpp::slashcommand("dice", "performs a dice roll (min 1, max 6)", bot.me.id));
-            commands.push_back(dpp::slashcommand("embed", "testing embeds rn", bot.me.id));
+            commands.push_back(dpp::slashcommand("dice", "performs a dice roll", bot.me.id));
+            commands.push_back(dpp::slashcommand("embed", "creates an embed of your choice", bot.me.id));
 
             // commands.push_back(dpp::slashcommand(name, desc, bot.me.id));
             // bot.global_command_create(dpp::slashcommand(name, desc, bot.me.id));
@@ -59,19 +64,30 @@ int main(int argc, char** argv) {
     return 0;
 }
 // functions
-void executeSlashCommand(string userInput, const dpp::slashcommand_t& event) {
+void executeSlashCommand(string userInput, const dpp::slashcommand_t& event, dpp::command_interaction cmd_data) {
     string result;
     if (userInput == "ping") {
         event.reply("Bot is ready to operate");
     } else if (userInput == "dice") {
-        event.reply(diceRoll(1, 6));
+        vector<dpp::command_data_option> subcommands = cmd_data.options;
+        if (subcommands.size() != 2) event.reply("Incorrect amount of options!");
+        else {
+            int* highLow = getHighLow(subcommands);
+            int low = highLow[0];
+            int high = highLow[1];
+            if (low <= high) {
+                event.reply("Given values could not be handled");
+            } else {
+                event.reply(diceRoll(low, high));
+            }
+            delete[] highLow;
+        }
     } else if (userInput == "embed") {
 
         // obviously not how this will work once implemented properly
-
         embedField field1{.title = "title", .contents = "this is some content for field1", .value = true}, 
-        field2{.title = "title", .contents = "this is some content for field1", .value = true}, 
-        field3{.title = "title", .contents = "this is some content for field1", .value = true};
+        field2{.title = "title", .contents = "this is some content for field2", .value = true}, 
+        field3{.title = "title", .contents = "this is some content for field3", .value = true};
 
         embedField embedFields[] = {field1, field2, field3}; 
 
@@ -88,8 +104,8 @@ string diceRoll(int low, int up) {
     return result;
 }
 
-void embed(const dpp::slashcommand_t& event, string title, string desc, string imgURL, embedField* fields, unsigned char fieldAmount) {
-    dpp::embed embed = getEmbed(title, desc, imgURL, fields, fieldAmount);
+void embed(const dpp::slashcommand_t& event, string title, string desc, string footer, embedField* fields, unsigned char fieldAmount, string thumbnailURL, string imgURL) {
+    dpp::embed embed = getEmbed(title, desc, footer, fields, fieldAmount, thumbnailURL, imgURL);
     dpp::message msg(event.command.channel_id, embed);
     event.reply(msg);
 }
@@ -101,7 +117,7 @@ dpp::embed getEmbed(string title, string desc, string footer, embedField* fields
         .set_description(desc)
         .set_footer(
             dpp::embed_footer()
-            .set_text("Footer text")
+            .set_text(footer)
         )
         .set_timestamp(time(0));
     
@@ -113,4 +129,29 @@ dpp::embed getEmbed(string title, string desc, string footer, embedField* fields
     }
 
     return embed;
+}
+
+bool isNumber(string strNumber) {
+    bool result = true;
+    for (char character : strNumber) {
+        if (!('0' <= character <= '9')) {
+            result = false;
+            break;
+        }
+    }
+    return result;
+}
+
+int* getHighLow(vector<dpp::command_data_option> options) {
+    int* result = nullptr;
+    string param1 = options[0].name;
+    string param2 = options[1].name;
+    
+    if (isNumber(param1) && isNumber(param2)) {
+        result = new int[2];
+        result[0] = stoi(param1);
+        result[1] = stoi(param2);
+    }
+
+    return result;
 }
