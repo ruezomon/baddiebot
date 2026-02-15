@@ -7,8 +7,6 @@
 using namespace std;
 
 // globals
-const string PING = "ping";
-const string PING_DESCRIPTION = "Test connection";
 
 // structs
 struct embedField {
@@ -22,10 +20,11 @@ void executeSlashCommand(string userInput, const dpp::slashcommand_t& event, dpp
 bool isNumber(string strNumber);
 
 string diceRoll(int low, int up);
-int* getHighLow(vector<dpp::command_data_option> options);
 
 void embed(const dpp::slashcommand_t& event, string title, string desc, string footer, embedField* fields, unsigned char fieldAmount, string thumbnailURL="none", string imgURL="none");
 dpp::embed getEmbed(string title, string desc, string footer, embedField* fields, unsigned char fieldAmount, string thumbnailURL, string imgURL);
+
+bool isBadWord(const dpp::message_create_t* event, vector<string>* badWords);
 
 // main
 int main(int argc, char** argv) {
@@ -34,9 +33,23 @@ int main(int argc, char** argv) {
     ifstream file("../config.json");
     nlohmann::json data = nlohmann::json::parse(file);
     const string BOT_TOKEN = data["token"];
-    dpp::cluster bot(BOT_TOKEN);
+    dpp::cluster bot(BOT_TOKEN, dpp::i_default_intents | dpp::i_message_content);
+    
+    vector<string> vecBadWords;
+    // filling all bad words into the vector
+    {
+        std::ifstream badWordsFile;
+        badWordsFile.open("../badwords.txt");
+        string word;
+        while (getline(badWordsFile, word)) vecBadWords.push_back(word);
+    }
 
     bot.on_log(dpp::utility::cout_logger());
+
+    bot.on_message_create([&bot, &vecBadWords](const dpp::message_create_t& event) {
+        if (isBadWord(&event, &vecBadWords))
+            event.reply("Wir würden dich darum bitten, diese Nachricht zu löschen, da sie 1 oder mehrere Wörter beinhält, welche auf diesem Server nicht erlaubt sind.", true);
+    });
 
     bot.on_slashcommand([](const dpp::slashcommand_t& event) {
         dpp::command_interaction cmd_data = event.command.get_command_interaction();
@@ -48,8 +61,12 @@ int main(int argc, char** argv) {
         if (dpp::run_once<struct register_bot_commands>()) {
 
             vector<dpp::slashcommand> commands;
-            commands.push_back(dpp::slashcommand(PING, PING_DESCRIPTION, bot.me.id));
-            commands.push_back(dpp::slashcommand("dice", "performs a dice roll", bot.me.id));
+            commands.push_back(dpp::slashcommand("ping", "Test connection", bot.me.id));
+            commands.push_back(
+                dpp::slashcommand("dice", "performs a dice roll", bot.me.id)
+                .add_option(dpp::command_option(dpp::co_string, "lowest", "Lowest number which can be rolled", true).set_auto_complete(false))
+                .add_option(dpp::command_option(dpp::co_string, "highest", "Highest number which can be rolled", true).set_auto_complete(false))
+            );
             commands.push_back(dpp::slashcommand("embed", "creates an embed of your choice", bot.me.id));
 
             // commands.push_back(dpp::slashcommand(name, desc, bot.me.id));
@@ -69,19 +86,16 @@ void executeSlashCommand(string userInput, const dpp::slashcommand_t& event, dpp
     if (userInput == "ping") {
         event.reply("Bot is ready to operate");
     } else if (userInput == "dice") {
-        vector<dpp::command_data_option> subcommands = cmd_data.options;
-        if (subcommands.size() != 2) event.reply("Incorrect amount of options!");
-        else {
-            int* highLow = getHighLow(subcommands);
-            int low = highLow[0];
-            int high = highLow[1];
-            if (low <= high) {
-                event.reply("Given values could not be handled");
-            } else {
-                event.reply(diceRoll(low, high));
-            }
-            delete[] highLow;
+
+        string lowStr = get<string>(event.get_parameter("low"));
+        string highStr = get<string>(event.get_parameter("high"));
+        
+        if (!(isNumber(lowStr) && isNumber(highStr))) {
+            event.reply("Given values were not recognized as numbers!");
+        } else {
+            event.reply(diceRoll(stoi(lowStr), stoi(highStr)));
         }
+
     } else if (userInput == "embed") {
 
         // obviously not how this will work once implemented properly
@@ -142,16 +156,14 @@ bool isNumber(string strNumber) {
     return result;
 }
 
-int* getHighLow(vector<dpp::command_data_option> options) {
-    int* result = nullptr;
-    string param1 = options[0].name;
-    string param2 = options[1].name;
-    
-    if (isNumber(param1) && isNumber(param2)) {
-        result = new int[2];
-        result[0] = stoi(param1);
-        result[1] = stoi(param2);
+bool isBadWord(const dpp::message_create_t* event, vector<string>* badWords) {
+    string message = event->msg.content;
+    for (int i = 0; i < message.length(); i++) {
+        message[i] = tolower(message[i]);
     }
 
-    return result;
+    for (string i : *badWords) {
+        if (message.find(i) != std::string::npos) return true;
+    }
+    return false;
 }
