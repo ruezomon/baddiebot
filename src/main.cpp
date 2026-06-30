@@ -20,6 +20,8 @@ void executeSlashCommand(string userInput, const dpp::slashcommand_t& event, dpp
 bool isNumber(string strNumber);
 
 string diceRoll(int low, int up);
+string lowerCase(std::string before);
+int isSubstring(string s1, string s2);
 
 void embed(const dpp::slashcommand_t& event, string title, string desc, string footer, embedField* fields, unsigned char fieldAmount, string thumbnailURL="none", string imgURL="none");
 dpp::embed getEmbed(string title, string desc, string footer, embedField* fields, unsigned char fieldAmount, string thumbnailURL, string imgURL);
@@ -47,8 +49,13 @@ int main(int argc, char** argv) {
     bot.on_log(dpp::utility::cout_logger());
 
     bot.on_message_create([&bot, &vecBadWords](const dpp::message_create_t& event) {
-        if (isBadWord(&event, &vecBadWords))
+        if (isBadWord(&event, &vecBadWords)) {
             event.reply("Wir würden dich darum bitten, diese Nachricht zu löschen, da sie 1 oder mehrere Wörter beinhält, welche auf diesem Server nicht erlaubt sind.", true);
+        }
+        cout << "message was sent by: " << event.msg.author.id.str() << endl;
+        if (isSubstring("naja", lowerCase(event.msg.content)) != -1 && event.msg.author.id.str() == "1072106368875626497") {
+            event.reply("-1 Kind");
+        }
     });
 
     bot.on_slashcommand([](const dpp::slashcommand_t& event) {
@@ -111,11 +118,35 @@ void executeSlashCommand(string userInput, const dpp::slashcommand_t& event, dpp
     cout << "executed " << userInput << endl;
 }
 
+string lowerCase(std::string before) {
+    string after = "";
+    for (char i : before) {
+        after += std::tolower(i);
+    }
+    return after;
+}
+
 string diceRoll(int low, int up) {
     srand(time(NULL));
     string result; 
     result[0] = (rand() % up + low) + '0';
     return result;
+}
+
+int isSubstring(string s1, string s2) {
+    int M = s1.length();
+    int N = s2.length();
+
+    for (int i = 0; i <= N - M; i++) {
+        int j;
+        for (j = 0; j < M; j++)
+            if (s2[i + j] != s1[j])
+                break;
+
+        if (j == M)
+            return i;
+    }
+    return -1;
 }
 
 void embed(const dpp::slashcommand_t& event, string title, string desc, string footer, embedField* fields, unsigned char fieldAmount, string thumbnailURL, string imgURL) {
