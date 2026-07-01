@@ -1,1 +1,0 @@
-/usr/bin/g++ -g -Wl,--dependency-file=CMakeFiles/baddiebot.dir/link.d CMakeFiles/baddiebot.dir/src/log.cpp.o CMakeFiles/baddiebot.dir/src/main.cpp.o -o /home/ruezo/Schreibtisch/baddieBot/bin/baddiebot  /usr/lib/libdpp.so.10.1.5 -lpthread /usr/lib/libssl.so /usr/lib/libcrypto.so /usr/lib/libz.so /usr/lib/libopus.so -lm

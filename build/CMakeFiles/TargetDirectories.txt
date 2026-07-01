@@ -1,3 +1,0 @@
-/home/ruezo/Schreibtisch/baddieBot/build/CMakeFiles/baddiebot.dir
-/home/ruezo/Schreibtisch/baddieBot/build/CMakeFiles/edit_cache.dir
-/home/ruezo/Schreibtisch/baddieBot/build/CMakeFiles/rebuild_cache.dir
