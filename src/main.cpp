@@ -75,6 +75,10 @@ int main(int argc, char** argv) {
                 .add_option(dpp::command_option(dpp::co_string, "highest", "Highest number which can be rolled", true).set_auto_complete(false))
             );
             commands.push_back(dpp::slashcommand("embed", "creates an embed of your choice", bot.me.id));
+            commands.push_back(dpp::slashcommand("leak", "leaks users private stuff", bot.me.id)
+                .add_option(dpp::command_option(dpp::co_string, "platform", "Platform on which that private stuff is", true).set_auto_complete(false))
+                .add_option(dpp::command_option(dpp::co_string, "user", "just the username", true).set_auto_complete(false))
+            );
 
             // commands.push_back(dpp::slashcommand(name, desc, bot.me.id));
             // bot.global_command_create(dpp::slashcommand(name, desc, bot.me.id));
