@@ -92,8 +92,8 @@ void executeSlashCommand(string userInput, const dpp::slashcommand_t& event, dpp
     string result;
     if (userInput == "ping") {
         event.reply("Bot is ready to operate");
-    } else if (userInput == "dice") {
 
+    } else if (userInput == "dice") {
         string lowStr = get<string>(event.get_parameter("low"));
         string highStr = get<string>(event.get_parameter("high"));
         
@@ -104,13 +104,18 @@ void executeSlashCommand(string userInput, const dpp::slashcommand_t& event, dpp
         }
 
     } else if (userInput == "embed") {
-
         // obviously not how this will work once implemented properly
         embedField field1{.title = "title", .contents = "this is some content for field1", .value = true}, 
         field2{.title = "title", .contents = "this is some content for field2", .value = true}, 
         field3{.title = "title", .contents = "this is some content for field3", .value = true};
 
         embedField embedFields[] = {field1, field2, field3}; 
+
+    } else if (userInput == "leak") {
+        string platform = get<string>(event.get_parameter("platform"));
+        string user = get<string>(event.get_parameter("user"));
+
+        event.reply("Hier ist der heiße Scheiß von " + user + ": https://www." + platform + ".com/" + user);
 
     } else {
         event.reply("Whoops! We haven't designed an output for this command!");
@@ -198,3 +203,4 @@ bool isBadWord(const dpp::message_create_t* event, vector<string>* badWords) {
     }
     return false;
 }
+
